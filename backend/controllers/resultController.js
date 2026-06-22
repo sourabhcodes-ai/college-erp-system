@@ -48,6 +48,17 @@ const getResultsByStudent = (req, res) => {
 
     const studentId = req.params.studentId;
 
+    // Student can only access own results
+    if (
+        req.user.role === "STUDENT" &&
+        req.user.userId !== studentId
+    ) {
+        return res.status(403).json({
+            message:
+                "Access denied. You can only view your own results."
+        });
+    }
+
     const studentResults = marks
         .filter(
             (record) =>

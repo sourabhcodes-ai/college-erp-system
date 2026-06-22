@@ -16,6 +16,12 @@ const users = [
         email: "student@erp.com",
         password: "student123",
         role: "STUDENT"
+    },
+    {
+    id: "STU002",
+    email: "student2@erp.com",
+    password: "student123",
+    role: "STUDENT"
     }
 ];
 
