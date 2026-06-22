@@ -1,7 +1,25 @@
-const departments = require("../data/departments");
+const pool = require("../config/db");
 
-const getDepartments = (req, res) => {
-    res.json(departments);
+const getDepartments = async (req, res) => {
+
+    try {
+
+        const result =
+            await pool.query(
+                "SELECT * FROM departments"
+            );
+
+        res.json(result.rows);
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message:
+                "Error fetching departments"
+        });
+    }
 };
 
 module.exports = {
