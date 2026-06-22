@@ -13,6 +13,7 @@ const facultyRoutes = require("./routes/facultyRoutes");
 const facultyAssignmentRoutes = require("./routes/facultyAssignmentRoutes");
 const attendanceRoutes = require("./routes/attendanceRoutes");
 const examRoutes = require("./routes/examRoutes");
+const marksRoutes = require("./routes/marksRoutes");
 const resultRoutes = require("./routes/resultRoutes");
 const authRoutes = require("./routes/authRoutes");
 
@@ -29,9 +30,9 @@ app.use("/api/faculty", facultyRoutes);
 app.use("/api/faculty-assignments", facultyAssignmentRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/exams", examRoutes);
+app.use("/api/marks", marksRoutes);
 app.use("/api/results", resultRoutes);
 app.use("/api/auth", authRoutes);
-
 
 app.listen(5000, () => {
     console.log("Server is running on port 5000");
