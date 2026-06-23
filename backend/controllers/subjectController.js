@@ -1,7 +1,25 @@
-const subjects = require("../data/subjects");
+const pool = require("../config/db");
 
-const getSubjects = (req, res) => {
-    res.json(subjects);
+const getSubjects = async (req, res) => {
+
+    try {
+
+        const result =
+            await pool.query(
+                "SELECT * FROM subjects"
+            );
+
+        res.json(result.rows);
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message:
+                "Error fetching subjects"
+        });
+    }
 };
 
 module.exports = {
