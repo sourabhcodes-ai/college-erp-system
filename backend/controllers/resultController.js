@@ -1,8 +1,7 @@
-const semesterResults = require("../data/semesterResults");
+const pool = require("../config/db");
+
 const { calculateCGPA } = require("../utils/cgpaUtils");
 const { calculateSGPA } = require("../utils/sgpaUtils");
-const marks = require("../data/marks");
-const subjects = require("../data/subjects");
 
 const {
     calculateTheoryTotal,
@@ -11,225 +10,465 @@ const {
 } = require("../utils/resultUtils");
 
 // Get all results
-const getResults = (req, res) => {
+const getResults = async (req, res) => {
 
-    const results = marks.map((record) => {
+    try {
 
-        let totalMarks = 0;
-
-        if (record.subjectType === "THEORY") {
-            totalMarks = calculateTheoryTotal(record);
-        }
-
-        if (record.subjectType === "PRACTICAL") {
-            totalMarks = calculatePracticalTotal(record);
-        }
-
-        const grade = calculateGrade(totalMarks);
-
-        return {
-            studentId: record.studentId,
-            subjectId: record.subjectId,
-            subjectType: record.subjectType,
-
-            totalMarks,
-
-            grade: grade?.grade || "N/A",
-
-            gradePoint: grade?.gradePoint || 0
-        };
-    });
-
-    res.json(results);
-};
-
-// Get results for a specific student
-const getResultsByStudent = (req, res) => {
-
-    const studentId = req.params.studentId;
-
-    // Student can only access own results
-    if (
-        req.user.role === "STUDENT" &&
-        req.user.userId !== studentId
-    ) {
-        return res.status(403).json({
-            message:
-                "Access denied. You can only view your own results."
-        });
-    }
-
-    const studentResults = marks
-        .filter(
-            (record) =>
-                record.studentId === studentId
-        )
-        .map((record) => {
-
-            let totalMarks = 0;
-
-            if (record.subjectType === "THEORY") {
-                totalMarks =
-                    calculateTheoryTotal(record);
-            }
-
-            if (record.subjectType === "PRACTICAL") {
-                totalMarks =
-                    calculatePracticalTotal(record);
-            }
-
-            const grade =
-                calculateGrade(totalMarks);
-
-            return {
-                studentId: record.studentId,
-
-                subjectId: record.subjectId,
-
-                subjectType: record.subjectType,
-
-                totalMarks,
-
-                grade: grade?.grade || "N/A",
-
-                gradePoint:
-                    grade?.gradePoint || 0
-            };
-        });
-
-    res.json(studentResults);
-};
-
-// Get semester result sheet
-const getSemesterResult = (req, res) => {
-
-    const { studentId, semesterId } = req.params;
-
-    const semesterResults = marks
-        .filter(
-            (record) =>
-                record.studentId === studentId &&
-                record.semesterId === semesterId
-        )
-        .map((record) => {
-
-            const subject = subjects.find(
-                (s) => s.id === record.subjectId
+        const marksResult =
+            await pool.query(
+                "SELECT * FROM marks"
             );
 
-            let totalMarks = 0;
-            let internalMarks = 0;
+        const marks =
+            marksResult.rows;
 
-            if (record.subjectType === "THEORY") {
+        const results =
+            marks.map((record) => {
 
-                const internal1 =
-                    (record.midSemMarks / 30) * 15;
+                let totalMarks = 0;
 
-                internalMarks =
-                    internal1 +
-                    record.internal2Marks +
-                    record.attendanceMarks;
+                if (
+                    record.subject_type ===
+                    "THEORY"
+                ) {
 
-                totalMarks =
-                    internalMarks +
-                    record.theoryMarks;
-            }
+                    totalMarks =
+                        calculateTheoryTotal({
 
-            if (record.subjectType === "PRACTICAL") {
+                            midSemMarks:
+                                record.mid_sem_marks,
 
-                internalMarks =
-                    record.internalMarks;
+                            internal2Marks:
+                                record.internal2_marks,
 
-                totalMarks =
-                    record.practicalMarks +
-                    record.vivaMarks +
-                    record.internalMarks;
-            }
+                            attendanceMarks:
+                                record.attendance_marks,
 
-            const grade =
-                calculateGrade(totalMarks);
+                            theoryMarks:
+                                record.theory_marks
+                        });
+                }
 
-            return {
-                subjectCode:
-                    subject?.id || "N/A",
+                if (
+                    record.subject_type ===
+                    "PRACTICAL"
+                ) {
 
-                subjectName:
-                    subject?.name ||
-                    "Unknown Subject",
+                    totalMarks =
+                        calculatePracticalTotal({
 
-                credits:
-                    subject?.credits || 0,
+                            practicalMarks:
+                                record.practical_marks,
 
-                subjectType:
-                    record.subjectType,
+                            vivaMarks:
+                                record.viva_marks,
 
-                internalMarks,
+                            internalMarks:
+                                record.internal_marks
+                        });
+                }
 
-                totalMarks,
+                const grade =
+                    calculateGrade(
+                        totalMarks
+                    );
 
-                grade:
-                    grade?.grade || "N/A",
+                return {
 
-                gradePoint:
-                    grade?.gradePoint || 0
-            };
+                    studentId:
+                        record.student_id,
+
+                    subjectId:
+                        record.subject_id,
+
+                    subjectType:
+                        record.subject_type,
+
+                    totalMarks,
+
+                    grade:
+                        grade?.grade ||
+                        "N/A",
+
+                    gradePoint:
+                        grade?.gradePoint ||
+                        0
+                };
+            });
+
+        res.json(results);
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message:
+                "Error fetching results"
         });
-
-    const sgpa =
-        calculateSGPA(semesterResults);
-
-    const totalCredits =
-        semesterResults.reduce(
-            (sum, subject) =>
-                sum + subject.credits,
-            0
-        );
-
-    const hasBacklog =
-        semesterResults.some(
-            (subject) =>
-                subject.grade === "F"
-        );
-
-    res.json({
-        studentId,
-        semesterId,
-
-        totalCredits,
-
-        sgpa,
-
-        resultStatus:
-            hasBacklog
-                ? "FAIL"
-                : "PASS",
-
-        subjects:
-            semesterResults
-    });
+    }
 };
 
-const getCGPA = (req, res) => {
+// Student Results
+const getResultsByStudent =
+async (req, res) => {
 
-    const studentId = req.params.studentId;
+    try {
 
-    const studentSemesters =
-        semesterResults.filter(
-            (semester) =>
-                semester.studentId === studentId
+        const studentId =
+            req.params.studentId;
+
+        if (
+            req.user.role ===
+            "STUDENT" &&
+
+            req.user.userId !==
+            studentId
+        ) {
+
+            return res
+                .status(403)
+                .json({
+
+                    message:
+                        "Access denied. You can only view your own results."
+                });
+        }
+
+        const result =
+            await pool.query(
+
+                `
+                SELECT *
+                FROM marks
+                WHERE student_id = $1
+                `,
+
+                [studentId]
+            );
+
+        const studentResults =
+            result.rows.map(
+                (record) => {
+
+                    let totalMarks =
+                        0;
+
+                    if (
+                        record.subject_type ===
+                        "THEORY"
+                    ) {
+
+                        totalMarks =
+                            calculateTheoryTotal({
+
+                                midSemMarks:
+                                    record.mid_sem_marks,
+
+                                internal2Marks:
+                                    record.internal2_marks,
+
+                                attendanceMarks:
+                                    record.attendance_marks,
+
+                                theoryMarks:
+                                    record.theory_marks
+                            });
+                    }
+
+                    if (
+                        record.subject_type ===
+                        "PRACTICAL"
+                    ) {
+
+                        totalMarks =
+                            calculatePracticalTotal({
+
+                                practicalMarks:
+                                    record.practical_marks,
+
+                                vivaMarks:
+                                    record.viva_marks,
+
+                                internalMarks:
+                                    record.internal_marks
+                            });
+                    }
+
+                    const grade =
+                        calculateGrade(
+                            totalMarks
+                        );
+
+                    return {
+
+                        studentId:
+                            record.student_id,
+
+                        subjectId:
+                            record.subject_id,
+
+                        subjectType:
+                            record.subject_type,
+
+                        totalMarks,
+
+                        grade:
+                            grade?.grade ||
+                            "N/A",
+
+                        gradePoint:
+                            grade?.gradePoint ||
+                            0
+                    };
+                });
+
+        res.json(
+            studentResults
         );
 
-    const cgpa =
-        calculateCGPA(studentSemesters);
+    } catch (error) {
 
-    res.json({
-        studentId,
+        console.error(error);
 
-        completedSemesters:
-            studentSemesters.length,
+        res.status(500).json({
+            message:
+                "Error fetching student results"
+        });
+    }
+};
 
-        cgpa
-    });
+// Semester Result
+const getSemesterResult =
+async (req, res) => {
+
+    try {
+
+        const {
+            studentId,
+            semesterId
+        } = req.params;
+
+        const marksResult =
+            await pool.query(
+
+                `
+                SELECT *
+                FROM marks
+                WHERE student_id=$1
+                AND semester_id=$2
+                `,
+
+                [
+                    studentId,
+                    semesterId
+                ]
+            );
+
+        const subjectsResult =
+            await pool.query(
+                "SELECT * FROM subjects"
+            );
+
+        const subjects =
+            subjectsResult.rows;
+
+        const results =
+            marksResult.rows.map(
+                (record) => {
+
+                    const subject =
+                        subjects.find(
+                            s =>
+                                s.id ===
+                                record.subject_id
+                        );
+
+                    let totalMarks =
+                        0;
+
+                    let internalMarks =
+                        0;
+
+                    if (
+                        record.subject_type ===
+                        "THEORY"
+                    ) {
+
+                        internalMarks =
+                            (
+                                record.mid_sem_marks /
+                                30
+                            ) *
+                            15 +
+
+                            record.internal2_marks +
+
+                            record.attendance_marks;
+
+                        totalMarks =
+                            internalMarks +
+
+                            record.theory_marks;
+                    }
+
+                    if (
+                        record.subject_type ===
+                        "PRACTICAL"
+                    ) {
+
+                        internalMarks =
+                            record.internal_marks;
+
+                        totalMarks =
+                            record.practical_marks +
+
+                            record.viva_marks +
+
+                            record.internal_marks;
+                    }
+
+                    const grade =
+                        calculateGrade(
+                            totalMarks
+                        );
+
+                    return {
+
+                        subjectCode:
+                            subject?.id,
+
+                        subjectName:
+                            subject?.name,
+
+                        credits:
+                            subject?.credits,
+
+                        subjectType:
+                            record.subject_type,
+
+                        internalMarks,
+
+                        totalMarks,
+
+                        grade:
+                            grade?.grade,
+
+                        gradePoint:
+                            grade?.gradePoint
+                    };
+                });
+
+        const sgpa =
+            calculateSGPA(
+                results
+            );
+
+        const totalCredits =
+            results.reduce(
+                (
+                    sum,
+                    s
+                ) =>
+                    sum +
+                    s.credits,
+                0
+            );
+
+        res.json({
+
+            studentId,
+
+            semesterId,
+
+            totalCredits,
+
+            sgpa,
+
+            resultStatus:
+
+                results.some(
+                    s =>
+                        s.grade ===
+                        "F"
+                )
+
+                    ? "FAIL"
+
+                    : "PASS",
+
+            subjects:
+                results
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message:
+                "Error fetching semester result"
+        });
+    }
+};
+
+// CGPA
+const getCGPA =
+async (req, res) => {
+
+    try {
+
+        const studentId =
+            req.params.studentId;
+
+        const result =
+            await pool.query(
+
+                `
+                SELECT *
+                FROM semester_results
+                WHERE student_id=$1
+                `,
+
+                [studentId]
+            );
+
+        const semesters =
+            result.rows.map(
+                s => ({
+
+                    totalCredits:
+                        s.total_credits,
+
+                    totalCreditPoints:
+                        s.total_credit_points
+                })
+            );
+
+        const cgpa =
+            calculateCGPA(
+                semesters
+            );
+
+        res.json({
+
+            studentId,
+
+            completedSemesters:
+                result.rows.length,
+
+            cgpa
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message:
+                "Error fetching CGPA"
+        });
+    }
 };
 
 module.exports = {
