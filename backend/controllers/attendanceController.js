@@ -1,38 +1,134 @@
-const attendance = require("../data/attendance");
+const pool = require("../config/db");
 
-const getAttendance = (req, res) => {
-    res.json(attendance);
+const getAttendance = async (req, res) => {
+
+    try {
+
+        const result =
+            await pool.query(
+                "SELECT * FROM attendance"
+            );
+
+        res.json(result.rows);
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message: "Error fetching attendance"
+        });
+    }
 };
 
-const getAttendanceByStudent = (req, res) => {
-    const studentId = req.params.studentId;
+const getAttendanceByStudent = async (req, res) => {
 
-    const studentAttendance = attendance.filter(
-        (record) => record.studentId === studentId
-    );
+    try {
 
-    res.json(studentAttendance);
+        const { studentId } = req.params;
+
+        const result =
+            await pool.query(
+                `
+                SELECT *
+                FROM attendance
+                WHERE student_id = $1
+                `,
+                [studentId]
+            );
+
+        res.json(result.rows);
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message: "Error fetching student attendance"
+        });
+    }
 };
 
-const getAttendanceBySection = (req, res) => {
-    const sectionId = req.params.sectionId;
+const getAttendanceBySection = async (req, res) => {
 
-    const sectionAttendance = attendance.filter(
-        (record) => record.sectionId === sectionId
-    );
+    try {
 
-    res.json(sectionAttendance);
+        const { sectionId } = req.params;
+
+        const result =
+            await pool.query(
+                `
+                SELECT *
+                FROM attendance
+                WHERE section_id = $1
+                `,
+                [sectionId]
+            );
+
+        res.json(result.rows);
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message: "Error fetching section attendance"
+        });
+    }
 };
 
-const markAttendance = (req, res) => {
-    const attendanceRecord = req.body;
+const markAttendance = async (req, res) => {
 
-    attendance.push(attendanceRecord);
+    try {
 
-    res.json({
-        message: "Attendance marked successfully",
-        attendance: attendanceRecord
-    });
+        const {
+            id,
+            studentId,
+            sectionId,
+            subjectId,
+            facultyId,
+            date,
+            status
+        } = req.body;
+
+        await pool.query(
+            `
+            INSERT INTO attendance
+            (
+                id,
+                student_id,
+                section_id,
+                subject_id,
+                faculty_id,
+                attendance_date,
+                status
+            )
+            VALUES
+            ($1,$2,$3,$4,$5,$6,$7)
+            `,
+            [
+                id,
+                studentId,
+                sectionId,
+                subjectId,
+                facultyId,
+                date,
+                status
+            ]
+        );
+
+        res.status(201).json({
+            message: "Attendance marked successfully"
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message: error.message
+        });
+    }
 };
 
 module.exports = {
