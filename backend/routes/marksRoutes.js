@@ -3,6 +3,7 @@ const router = express.Router();
 
 const {
     getMarks,
+    getMarksByStudent,
     addMarks
 } = require("../controllers/marksController");
 
@@ -15,6 +16,12 @@ const {
 } = require("../middleware/roleMiddleware");
 
 router.get("/", getMarks);
+
+router.get(
+    "/student/:studentId",
+    verifyToken,
+    getMarksByStudent
+);
 
 router.post(
     "/",

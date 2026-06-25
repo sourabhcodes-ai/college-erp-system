@@ -9,6 +9,10 @@ import Dashboard from "./pages/Dashboard";
 import Students from "./pages/Students";
 import Faculty from "./pages/Faculty";
 import Subjects from "./pages/Subjects";
+import Marks from "./pages/Marks";
+import StudentResult from "./pages/StudentResult";
+import Attendance from "./pages/Attendance";
+import Results from "./pages/Results";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -56,6 +60,42 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <Subjects />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/marks"
+                    element={
+                        <ProtectedRoute>
+                            <Marks />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/marks/:studentId"
+                    element={
+                        <ProtectedRoute>
+                            <StudentResult />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/attendance"
+                    element={
+                        <ProtectedRoute>
+                            <Attendance />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/results"
+                    element={
+                        <ProtectedRoute>
+                            <Results />
                         </ProtectedRoute>
                     }
                 />

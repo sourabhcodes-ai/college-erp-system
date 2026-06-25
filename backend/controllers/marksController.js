@@ -21,6 +21,33 @@ const getMarks = async (req, res) => {
     }
 };
 
+const getMarksByStudent = async (req, res) => {
+
+    try {
+
+        const { studentId } = req.params;
+
+        const result = await pool.query(
+            `
+            SELECT *
+            FROM marks
+            WHERE student_id = $1
+            `,
+            [studentId]
+        );
+
+        res.json(result.rows);
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message: "Error fetching student marks"
+        });
+    }
+};
+
 const addMarks = async (req, res) => {
 
     try {
@@ -102,5 +129,6 @@ const addMarks = async (req, res) => {
 
 module.exports = {
     getMarks,
+    getMarksByStudent,
     addMarks
 };
