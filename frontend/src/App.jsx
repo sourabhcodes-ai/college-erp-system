@@ -6,6 +6,11 @@ import {
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Students from "./pages/Students";
+import Faculty from "./pages/Faculty";
+import Subjects from "./pages/Subjects";
+
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
 
@@ -21,7 +26,38 @@ function App() {
 
                 <Route
                     path="/dashboard"
-                    element={<Dashboard />}
+                    element={
+                        <ProtectedRoute>
+                            <Dashboard />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/students"
+                    element={
+                        <ProtectedRoute>
+                            <Students />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/faculty"
+                    element={
+                        <ProtectedRoute>
+                            <Faculty />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/subjects"
+                    element={
+                        <ProtectedRoute>
+                            <Subjects />
+                        </ProtectedRoute>
+                    }
                 />
 
             </Routes>

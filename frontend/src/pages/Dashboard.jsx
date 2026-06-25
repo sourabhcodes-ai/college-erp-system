@@ -1,3 +1,5 @@
+import Sidebar from "../components/Sidebar";
+
 function Dashboard() {
 
     const user =
@@ -6,35 +8,28 @@ function Dashboard() {
         );
 
     return (
-        <div className="min-h-screen bg-gray-100">
 
-            <div className="bg-blue-600 text-white p-4 flex justify-between">
+        <div className="flex">
 
-                <h1 className="text-xl font-bold">
-                    College ERP
+            <Sidebar />
+
+            <div className="flex-1 p-8 bg-gray-100 min-h-screen">
+
+                <h1 className="text-3xl font-bold">
+                    Dashboard
                 </h1>
 
-                <button
-                    onClick={() => {
-                        localStorage.clear();
-                        window.location.reload();
-                    }}
-                    className="bg-red-500 px-4 py-2 rounded"
-                >
-                    Logout
-                </button>
+                <div className="bg-white p-6 rounded-lg shadow mt-6">
 
-            </div>
+                    <h2 className="text-xl font-semibold">
+                        Welcome {user?.id}
+                    </h2>
 
-            <div className="p-8">
+                    <p className="mt-2">
+                        Role: {user?.role}
+                    </p>
 
-                <h2 className="text-3xl font-bold">
-                    Welcome {user?.id}
-                </h2>
-
-                <p className="mt-2 text-gray-600">
-                    Role: {user?.role}
-                </p>
+                </div>
 
             </div>
 
