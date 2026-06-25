@@ -13,12 +13,16 @@ import Marks from "./pages/Marks";
 import StudentResult from "./pages/StudentResult";
 import Attendance from "./pages/Attendance";
 import Results from "./pages/Results";
+import StudentResults from "./pages/StudentResults";
+import StudentCGPA from "./pages/StudentCGPA";
 
 import ProtectedRoute from "./components/ProtectedRoute";
+import RoleProtectedRoute from "./components/RoleProtectedRoute";
 
 function App() {
 
     return (
+
         <BrowserRouter>
 
             <Routes>
@@ -37,11 +41,17 @@ function App() {
                     }
                 />
 
+                {/* ADMIN ONLY */}
+
                 <Route
                     path="/students"
                     element={
                         <ProtectedRoute>
-                            <Students />
+                            <RoleProtectedRoute
+                                allowedRoles={["ADMIN"]}
+                            >
+                                <Students />
+                            </RoleProtectedRoute>
                         </ProtectedRoute>
                     }
                 />
@@ -50,7 +60,11 @@ function App() {
                     path="/faculty"
                     element={
                         <ProtectedRoute>
-                            <Faculty />
+                            <RoleProtectedRoute
+                                allowedRoles={["ADMIN"]}
+                            >
+                                <Faculty />
+                            </RoleProtectedRoute>
                         </ProtectedRoute>
                     }
                 />
@@ -59,7 +73,29 @@ function App() {
                     path="/subjects"
                     element={
                         <ProtectedRoute>
-                            <Subjects />
+                            <RoleProtectedRoute
+                                allowedRoles={["ADMIN"]}
+                            >
+                                <Subjects />
+                            </RoleProtectedRoute>
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* ADMIN + FACULTY */}
+
+                <Route
+                    path="/attendance"
+                    element={
+                        <ProtectedRoute>
+                            <RoleProtectedRoute
+                                allowedRoles={[
+                                    "ADMIN",
+                                    "FACULTY"
+                                ]}
+                            >
+                                <Attendance />
+                            </RoleProtectedRoute>
                         </ProtectedRoute>
                     }
                 />
@@ -68,7 +104,14 @@ function App() {
                     path="/marks"
                     element={
                         <ProtectedRoute>
-                            <Marks />
+                            <RoleProtectedRoute
+                                allowedRoles={[
+                                    "ADMIN",
+                                    "FACULTY"
+                                ]}
+                            >
+                                <Marks />
+                            </RoleProtectedRoute>
                         </ProtectedRoute>
                     }
                 />
@@ -77,16 +120,14 @@ function App() {
                     path="/marks/:studentId"
                     element={
                         <ProtectedRoute>
-                            <StudentResult />
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/attendance"
-                    element={
-                        <ProtectedRoute>
-                            <Attendance />
+                            <RoleProtectedRoute
+                                allowedRoles={[
+                                    "ADMIN",
+                                    "FACULTY"
+                                ]}
+                            >
+                                <StudentResult />
+                            </RoleProtectedRoute>
                         </ProtectedRoute>
                     }
                 />
@@ -95,7 +136,40 @@ function App() {
                     path="/results"
                     element={
                         <ProtectedRoute>
-                            <Results />
+                            <RoleProtectedRoute
+                                allowedRoles={[
+                                    "ADMIN",
+                                    "FACULTY"
+                                ]}
+                            >
+                                <Results />
+                            </RoleProtectedRoute>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/student/results"
+                    element={
+                        <ProtectedRoute>
+                            <RoleProtectedRoute
+                                allowedRoles={["STUDENT"]}
+                            >
+                                <StudentResults />
+                            </RoleProtectedRoute>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/student/cgpa"
+                    element={
+                        <ProtectedRoute>
+                            <RoleProtectedRoute
+                                allowedRoles={["STUDENT"]}
+                            >
+                                <StudentCGPA />
+                            </RoleProtectedRoute>
                         </ProtectedRoute>
                     }
                 />

@@ -427,7 +427,8 @@ async (req, res) => {
                 `
                 SELECT *
                 FROM semester_results
-                WHERE student_id=$1
+                WHERE student_id = $1
+                ORDER BY semester_id
                 `,
 
                 [studentId]
@@ -457,7 +458,19 @@ async (req, res) => {
             completedSemesters:
                 result.rows.length,
 
-            cgpa
+            cgpa,
+
+            semesters:
+                result.rows.map(
+                    s => ({
+
+                        semesterId:
+                            s.semester_id,
+
+                        sgpa:
+                            s.sgpa
+                    })
+                )
         });
 
     } catch (error) {
