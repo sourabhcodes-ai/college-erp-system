@@ -16,6 +16,7 @@ import Results from "./pages/Results";
 import StudentResults from "./pages/StudentResults";
 import StudentCGPA from "./pages/StudentCGPA";
 import StudentMarks from "./pages/StudentMarks";
+import StudentAttendance from "./pages/StudentAttendance";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
@@ -183,6 +184,19 @@ function App() {
                                 allowedRoles={["STUDENT"]}
                             >
                                 <StudentMarks />
+                            </RoleProtectedRoute>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/student/attendance"
+                    element={
+                        <ProtectedRoute>
+                            <RoleProtectedRoute
+                                allowedRoles={["STUDENT"]}
+                            >
+                                <StudentAttendance />
                             </RoleProtectedRoute>
                         </ProtectedRoute>
                     }
